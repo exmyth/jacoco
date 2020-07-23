@@ -16,10 +16,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.jacoco.core.internal.analysis.BundleCoverageImpl;
 import org.jacoco.core.internal.analysis.SourceFileCoverageImpl;
+import org.jacoco.core.internal.diff.ClassInfo;
+import org.jacoco.core.internal.diff.CodeDiff;
+import org.jacoco.core.util.RegExUtils;
+import org.jacoco.core.util.StringUtils;
 
 /**
  * Builder for hierarchical {@link ICoverageNode} structures from single
@@ -40,6 +46,8 @@ public class CoverageBuilder implements ICoverageVisitor {
 	private final Map<String, IClassCoverage> classes;
 
 	private final Map<String, ISourceFileCoverage> sourcefiles;
+
+	public static List<ClassInfo> classInfos;    // 新增的成员变量
 
 	/**
 	 * Create a new builder.
@@ -126,6 +134,83 @@ public class CoverageBuilder implements ICoverageVisitor {
 			sourcefiles.put(key, sourcefile);
 		}
 		return sourcefile;
+	}
+
+	/**
+	 * 分支与master对比
+	 * @param gitPath local gitPath
+	 * @param branchName new test branch name
+	 */
+	public CoverageBuilder(String gitPath, String branchName) {
+		this.classes = new HashMap<String, IClassCoverage>();
+		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
+		classInfos = CodeDiff.diffBranchToBranch(gitPath, branchName,CodeDiff.MASTER);
+	}
+
+	/**
+	 * 分支与分支之间对比
+	 * @param gitPath local gitPath
+	 * @param newBranchName newBranchName
+	 * @param oldBranchName oldBranchName
+	 */
+	public CoverageBuilder(String gitPath, String newBranchName, String oldBranchName) {
+		this.classes = new HashMap<String, IClassCoverage>();
+		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
+		classInfos = CodeDiff.diffBranchToBranch(gitPath, newBranchName, oldBranchName);
+	}
+
+	public CoverageBuilder(String gitPath, String newBranchName, String oldBranchName, List<String> packageExclusionList, List<String> nameExclusionList) {
+		this.classes = new HashMap<String, IClassCoverage>();
+		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
+		List<ClassInfo> classInfoList = CodeDiff.diffBranchToBranch(gitPath, newBranchName, oldBranchName);
+		List<Pattern> packageList = new ArrayList<Pattern>();
+		List<Pattern> nameList = new ArrayList<Pattern>();
+		for(String item : packageExclusionList){
+			packageList.add(Pattern.compile(item));
+		}
+		for(String item : nameExclusionList){
+			nameList.add(Pattern.compile(item));
+		}
+		for (int i = classInfoList.size() -1; i >=0; i--) {
+			if(excludeClass(classInfoList.get(i), packageList, nameList)){
+				classInfoList.remove(i);
+			}
+		}
+		classInfos = classInfoList;
+	}
+
+	private boolean excludeClass(ClassInfo classInfo, List<Pattern> packageList, List<Pattern> nameList) {
+		for (Pattern p : packageList){
+			if(p.matcher(classInfo.getPackages()).matches()){
+				return true;
+			}
+		}
+		for (Pattern p : nameList){
+			if(p.matcher(classInfo.getClassName()).matches()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static void main(String[] args) {
+		Pattern compile = Pattern.compile(".BO.java");
+		if(compile.matcher("1aaaaBO.java").matches()){
+			System.out.println(1);
+		}
+	}
+
+	/**
+	 * tag与tag之间对比
+	 * @param gitPath local gitPath
+	 * @param branchName develop branchName
+	 * @param newTag new Tag
+	 * @param oldTag old Tag
+	 */
+	public CoverageBuilder(String gitPath, String branchName, String newTag, String oldTag) {
+		this.classes = new HashMap<String, IClassCoverage>();
+		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
+		classInfos = CodeDiff.diffTagToTag(gitPath,branchName, newTag, oldTag);
 	}
 
 }

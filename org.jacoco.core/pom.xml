@@ -38,6 +38,19 @@
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-tree</artifactId>
     </dependency>
+	<!--java文件编译class-->
+    <dependency>
+      <groupId>org.eclipse.jdt</groupId>
+      <artifactId>org.eclipse.jdt.core</artifactId>
+      <version>3.19.0</version>
+    </dependency>
+
+    <!--git操作-->
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>5.5.0.201909110433-r</version>
+    </dependency>
   </dependencies>
 
   <build>
