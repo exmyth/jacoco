@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Main-Class: org.jacoco.examples.increment.ReportGenerator
+Class-Path: org.eclipse.jdt.core-3.19.0.jar JavaEWAH-1.1.6.jar asm-tree-
+ 8.0.1.jar org.eclipse.jgit-5.5.0.201909110433-r.jar org.eclipse.equinox
+ .registry-3.8.800.jar jzlib-1.1.1.jar org.eclipse.core.runtime-3.18.0.j
+ ar asm-commons-8.0.1.jar bcpg-jdk15on-1.61.jar org.eclipse.equinox.app-
+ 1.4.500.jar slf4j-api-1.7.2.jar org.eclipse.equinox.common-3.12.0.jar o
+ rg.eclipse.text-3.10.200.jar bcpkix-jdk15on-1.61.jar org.eclipse.core.r
+ esources-3.13.700.jar org.eclipse.osgi-3.15.300.jar org.eclipse.core.co
+ mmands-3.9.700.jar bcprov-jdk15on-1.61.jar org.eclipse.core.filesystem-
+ 1.7.700.jar org.eclipse.core.jobs-3.10.800.jar asm-8.0.1.jar asm-analys
+ is-8.0.1.jar org.eclipse.core.contenttype-3.7.700.jar org.eclipse.equin
+ ox.preferences-3.8.0.jar org.eclipse.core.expressions-3.6.800.jar jsch-
+ 0.1.55.jar
+
