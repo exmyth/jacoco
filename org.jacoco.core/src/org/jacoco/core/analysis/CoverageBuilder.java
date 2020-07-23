@@ -193,13 +193,6 @@ public class CoverageBuilder implements ICoverageVisitor {
 		return false;
 	}
 
-	public static void main(String[] args) {
-		Pattern compile = Pattern.compile(".BO.java");
-		if(compile.matcher("1aaaaBO.java").matches()){
-			System.out.println(1);
-		}
-	}
-
 	/**
 	 * tag与tag之间对比
 	 * @param gitPath local gitPath
