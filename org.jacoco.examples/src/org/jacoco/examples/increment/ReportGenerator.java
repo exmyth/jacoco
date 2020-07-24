@@ -1,11 +1,5 @@
 package org.jacoco.examples.increment;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
 import org.jacoco.core.analysis.IBundleCoverage;
@@ -17,8 +11,17 @@ import org.jacoco.report.FileMultiReportOutput;
 import org.jacoco.report.IReportVisitor;
 import org.jacoco.report.html.HTMLFormatter;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /** * 用于根据exec文件生成增量覆盖率报告 */
 public class ReportGenerator {
+
+    private static final String BRANCH = "branch";
+    private static final String LOG = "log";
 
     private final String title;
     private final String gitPath;
@@ -106,19 +109,22 @@ public class ReportGenerator {
     public static void main(final String[] args) throws IOException {
 
         if(args.length < 7){
-            System.err.println("参数不正确，正确用法举例：\njava -jar D:/IdeaProjects/middleware-checker feature/1.0.1 master middleware-checker.exec target/classes  src/main/java report");
+            System.err.println("java -jar org_jacoco_examples_jar/org.jacoco.examples.jar" +
+                    "  <gitPath> <newBranchName> <oldBranchName> <execName> <classPath>  <sourcePath> <reportPath>");
+            System.out.println();
+            System.out.println("eg: java -jar org_jacoco_examples_jar/org.jacoco.examples.jar ./ feature/1.0.1 master middleware-checker.exec target/classes  src/main/java report");
             System.exit(-1);
         }
         ReportGenerator generator = new ReportGenerator(args[0], args[1], args[2], args[3], args[4], args[5],args[6]);
 
         if(args.length > 7){
             String[] split = StringUtils.split(args[7], "/");
-            if(split.length>0){
-                generator.setPackageExclusionList(Arrays.asList(StringUtils.split(StringUtils.deleteWhitespace(split[0]), ",")));
-            }
-            if(split.length>1){
-                generator.setNameExclusionList(Arrays.asList(StringUtils.split(StringUtils.deleteWhitespace(split[1]), ",")));
-            }
+                if(split.length>0){
+                    generator.setPackageExclusionList(Arrays.asList(StringUtils.split(StringUtils.deleteWhitespace(split[0]), ",")));
+                }
+                if(split.length>1){
+                    generator.setNameExclusionList(Arrays.asList(StringUtils.split(StringUtils.deleteWhitespace(split[1]), ",")));
+                }
         }
         generator.create();
     }

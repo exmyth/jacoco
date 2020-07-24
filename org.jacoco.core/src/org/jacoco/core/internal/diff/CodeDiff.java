@@ -8,13 +8,17 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.patch.FileHeader;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.StringUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -358,5 +362,49 @@ public class CodeDiff {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static List<ClassInfo> diffLogToBranch(String gitPath, String branchName, String log1, String log2) {
+        try {
+            Git git = Git.open(new File(gitPath));
+            List<DiffEntry> diffs = getBranchDiffLog(git, branchName, log1, log2);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            DiffFormatter df = new DiffFormatter(out);
+            //设置比较器为忽略空白字符对比（Ignores all whitespace）
+            df.setDiffComparator(RawTextComparator.WS_IGNORE_ALL);
+            df.setRepository(git.getRepository());
+            List<ClassInfo> allClassInfos = batchPrepareDiffMethodForTag(new GitAdapter(gitPath), log1, log1, df, diffs);
+            return allClassInfos;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            return new ArrayList<ClassInfo>();
+        }
+    }
+
+    public static List<DiffEntry> getBranchDiffLog(Git git, String branchName, String log1, String log2) {
+        try {
+            ObjectId objId = git.getRepository().resolve(branchName);
+            Iterable<RevCommit> allCommitsLater = git.log().add(objId).call();
+            Iterator<RevCommit> iter = allCommitsLater.iterator();
+            TreeWalk tw = new TreeWalk(git.getRepository());
+
+            while (iter.hasNext()){
+                RevCommit commit = iter.next();
+                if(tw.getTreeCount() == 0){
+                    if(org.jacoco.core.util.StringUtils.startsWith(commit.getName(), log1)){
+                        tw.addTree(commit.getTree());
+                    }
+                } else if(org.jacoco.core.util.StringUtils.startsWith(commit.getName(), log2)){
+                    tw.addTree(commit.getTree());
+                }
+            }
+            tw.setRecursive(true);
+            RenameDetector rd = new RenameDetector(git.getRepository());
+            rd.addAll(DiffEntry.scan(tw));
+            return rd.compute();
+        } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
+            return new ArrayList<DiffEntry>();
+        }
     }
 }

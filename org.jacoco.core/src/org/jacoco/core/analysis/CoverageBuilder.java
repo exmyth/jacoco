@@ -24,8 +24,6 @@ import org.jacoco.core.internal.analysis.BundleCoverageImpl;
 import org.jacoco.core.internal.analysis.SourceFileCoverageImpl;
 import org.jacoco.core.internal.diff.ClassInfo;
 import org.jacoco.core.internal.diff.CodeDiff;
-import org.jacoco.core.util.RegExUtils;
-import org.jacoco.core.util.StringUtils;
 
 /**
  * Builder for hierarchical {@link ICoverageNode} structures from single
@@ -111,8 +109,7 @@ public class CoverageBuilder implements ICoverageVisitor {
 		final IClassCoverage dup = classes.put(name, coverage);
 		if (dup != null) {
 			if (dup.getId() != coverage.getId()) {
-				throw new IllegalStateException(
-						"Can't add different class with same name: " + name);
+				System.err.println("Can't add different class with same name: " + name);
 			}
 		} else {
 			final String source = coverage.getSourceFileName();
@@ -163,23 +160,34 @@ public class CoverageBuilder implements ICoverageVisitor {
 		this.classes = new HashMap<String, IClassCoverage>();
 		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
 		List<ClassInfo> classInfoList = CodeDiff.diffBranchToBranch(gitPath, newBranchName, oldBranchName);
+		this.classInfos = excludeClass(classInfoList, packageExclusionList, nameExclusionList);
+	}
+
+	private List<ClassInfo> excludeClass(List<ClassInfo> classInfoList, List<String> packageExclusionList, List<String> nameExclusionList) {
 		List<Pattern> packageList = new ArrayList<Pattern>();
 		List<Pattern> nameList = new ArrayList<Pattern>();
-		for(String item : packageExclusionList){
+		for (String item : packageExclusionList) {
 			packageList.add(Pattern.compile(item));
 		}
-		for(String item : nameExclusionList){
+		for (String item : nameExclusionList) {
 			nameList.add(Pattern.compile(item));
 		}
-		for (int i = classInfoList.size() -1; i >=0; i--) {
-			if(excludeClass(classInfoList.get(i), packageList, nameList)){
+		for (int i = classInfoList.size() - 1; i >= 0; i--) {
+			if (isInExclusionList(classInfoList.get(i), packageList, nameList)) {
 				classInfoList.remove(i);
 			}
 		}
-		classInfos = classInfoList;
+		return classInfoList;
 	}
 
-	private boolean excludeClass(ClassInfo classInfo, List<Pattern> packageList, List<Pattern> nameList) {
+	public CoverageBuilder(String gitPath, String branchName, String log1, String log2, List<String> packageExclusionList, List<String> nameExclusionList) {
+		this.classes = new HashMap<String, IClassCoverage>();
+		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
+		List<ClassInfo> classInfoList = CodeDiff.diffLogToBranch(gitPath, branchName, log1, log2);
+		this.classInfos = excludeClass(classInfoList, packageExclusionList, nameExclusionList);
+	}
+
+	private boolean isInExclusionList(ClassInfo classInfo, List<Pattern> packageList, List<Pattern> nameList) {
 		for (Pattern p : packageList){
 			if(p.matcher(classInfo.getPackages()).matches()){
 				return true;
