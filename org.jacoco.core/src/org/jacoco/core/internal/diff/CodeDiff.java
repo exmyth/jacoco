@@ -184,7 +184,7 @@ public class CodeDiff {
     /**
      * 多线程执行对比
      */
-    private static List<ClassInfo> batchPrepareDiffMethodForLog(final GitAdapter gitAdapter, final String log1, final String log2, final DiffFormatter df, List<DiffEntry> diffs) {
+    private static List<ClassInfo> batchPrepareDiffMethodForCommit(final GitAdapter gitAdapter, final String newCommitId, final String oldCommitId, final DiffFormatter df, List<DiffEntry> diffs) {
         int threadSize = 100;
         int dataSize = diffs.size();
         int threadNum = dataSize / threadSize + 1;
@@ -209,7 +209,7 @@ public class CodeDiff {
                 public List<ClassInfo> call() throws Exception {
                     List<ClassInfo> allList = new ArrayList<ClassInfo>();
                     for (DiffEntry diffEntry : diffEntryList) {
-                        ClassInfo classInfo = prepareDiffMethodForLog(gitAdapter, log1, log2, df, diffEntry);
+                        ClassInfo classInfo = prepareDiffMethodForCommit(gitAdapter, newCommitId, oldCommitId, df, diffEntry);
                         if (classInfo != null) {
                             allList.add(classInfo);
                         }
@@ -303,7 +303,7 @@ public class CodeDiff {
     /**
      * 单个差异文件对比
      */
-    private synchronized static ClassInfo prepareDiffMethodForLog(GitAdapter gitAdapter, String log1, String log2, DiffFormatter df, DiffEntry diffEntry) {
+    private synchronized static ClassInfo prepareDiffMethodForCommit(GitAdapter gitAdapter, String log1, String log2, DiffFormatter df, DiffEntry diffEntry) {
         List<MethodInfo> methodInfoList = new ArrayList<MethodInfo>();
         try {
             String newJavaPath = diffEntry.getNewPath();
@@ -483,16 +483,16 @@ public class CodeDiff {
         return null;
     }
 
-    public static List<ClassInfo> diffLogToLog(String gitPath, String branchName, String newCommitId, String oldCommitId) {
+    public static List<ClassInfo> diffCommitToCommit(String gitPath, String branchName, String newCommitId, String oldCommitId) {
         try {
             Git git = Git.open(new File(gitPath));
-            List<DiffEntry> diffs = getBranchDiffLog(git, branchName, newCommitId, oldCommitId);
+            List<DiffEntry> diffs = getBranchDiffCommit(git, branchName, newCommitId, oldCommitId);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             DiffFormatter df = new DiffFormatter(out);
             //设置比较器为忽略空白字符对比（Ignores all whitespace）
             df.setDiffComparator(RawTextComparator.WS_IGNORE_ALL);
             df.setRepository(git.getRepository());
-            List<ClassInfo> allClassInfos = batchPrepareDiffMethodForLog(new GitAdapter(gitPath), newCommitId, oldCommitId, df, diffs);
+            List<ClassInfo> allClassInfos = batchPrepareDiffMethodForCommit(new GitAdapter(gitPath), newCommitId, oldCommitId, df, diffs);
             return allClassInfos;
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -500,7 +500,7 @@ public class CodeDiff {
         }
     }
 
-    public static List<DiffEntry> getBranchDiffLog(Git git, String branchName, String newCommitId, String oldCommitId) {
+    public static List<DiffEntry> getBranchDiffCommit(Git git, String branchName, String newCommitId, String oldCommitId) {
         try {
             ObjectId objId = git.getRepository().resolve(branchName);
             Iterable<RevCommit> allCommitsLater = git.log().add(objId).call();

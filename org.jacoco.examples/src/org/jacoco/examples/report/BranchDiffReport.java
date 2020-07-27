@@ -23,8 +23,7 @@ public class BranchDiffReport extends DiffReport{
 
     public static DiffReport newInstance(String[] args) {
         if(args.length < 8){
-            System.err.println("java -jar org_jacoco_examples_jar/org.jacoco.examples.jar" +
-                    " branch <gitPath> <newBranchName> <oldBranchName> <execName> <classPath>  <sourcePath> <reportPath> [exclusion]");
+            System.err.println("java -jar org_jacoco_examples_jar/org.jacoco.examples.jar branch <gitPath> <newBranchName> <oldBranchName> <execName> <classPath>  <sourcePath> <reportPath> [exclusion]");
             System.out.println();
             System.out.println("eg: java -jar org_jacoco_examples_jar/org.jacoco.examples.jar branch ./ feature/1.0.1 master middleware-checker.exec target/classes  src/main/java report");
             System.exit(-1);

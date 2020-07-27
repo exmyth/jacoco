@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.jacoco.core.internal.analysis.BundleCoverageImpl;
 import org.jacoco.core.internal.analysis.SourceFileCoverageImpl;
@@ -134,7 +133,7 @@ public class CoverageBuilder implements ICoverageVisitor {
 	}
 
 	/**
-	 * 分支与master对比
+	 * branchName compare with <master>
 	 * @param gitPath local gitPath
 	 * @param branchName new test branch name
 	 */
@@ -145,7 +144,7 @@ public class CoverageBuilder implements ICoverageVisitor {
 	}
 
 	/**
-	 * 分支与分支之间对比
+	 * branch compare with each other
 	 * @param gitPath local gitPath
 	 * @param newBranchName newBranchName
 	 * @param oldBranchName oldBranchName
@@ -157,20 +156,20 @@ public class CoverageBuilder implements ICoverageVisitor {
 	}
 
 	/**
-	 * commitId与commitId之间对比
+	 * commit id compare with each other
 	 * @param gitPath
 	 * @param branchName
-	 * @param log1
-	 * @param log2
+	 * @param newCommitId
+	 * @param oldCommitId
 	 */
-	public static CoverageBuilder buildDiffLogToLog(String gitPath, String branchName, String log1, String log2) {
+	public static CoverageBuilder buildDiffCommitToCommit(String gitPath, String branchName, String newCommitId, String oldCommitId) {
 		CoverageBuilder coverageBuilder = new CoverageBuilder();
-		coverageBuilder.classInfos = CodeDiff.diffLogToLog(gitPath, branchName, log1, log2);
+		coverageBuilder.classInfos = CodeDiff.diffCommitToCommit(gitPath, branchName, newCommitId, oldCommitId);
 		return coverageBuilder;
 	}
 
 	/**
-	 * tag与tag之间对比
+	 * tag compare with each other
 	 * @param gitPath local gitPath
 	 * @param branchName develop branchName
 	 * @param newTag new Tag

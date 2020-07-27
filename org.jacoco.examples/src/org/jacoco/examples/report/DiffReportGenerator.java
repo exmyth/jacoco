@@ -8,11 +8,11 @@ import java.util.List;
 public class DiffReportGenerator {
 
     private static final String BRANCH = "branch";
-    private static final String LOG = "log";
-    private static final List<String> diffList = Arrays.asList(BRANCH, LOG);
+    private static final String COMMIT = "commit";
+    private static final List<String> diffList = Arrays.asList(BRANCH, COMMIT);
     public static void main(final String[] args) throws IOException {
         if(args.length <= 0 || !diffList.contains(args[0])){
-            System.err.println("arg0 value illegal, it must be one of (branch, log)");
+            System.err.println("arg0 value illegal, it must be one of (branch, commit)");
             System.exit(-1);
         }
         getDiffReport(args).create();
@@ -22,8 +22,8 @@ public class DiffReportGenerator {
         DiffReport report = null;
         if(BRANCH.equals(args[0])){
             report = BranchDiffReport.newInstance(args);
-        } else if(LOG.equals(args[0])){
-            report = LogDiffReport.newInstance(args);
+        } else if(COMMIT.equals(args[0])){
+            report = CommitDiffReport.newInstance(args);
         }
         return report;
     }
