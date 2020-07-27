@@ -91,6 +91,14 @@ public class GitAdapter {
         RevTree tree = revCommit.getTree();
         return  getFileContent(javaPath,tree,walk);
     }
+
+    public String getCommitLogSpecificFileContent(String gitLog, String javaPath) throws IOException {
+        ObjectId objId = repository.resolve(gitLog);
+        RevWalk walk = new RevWalk(repository);
+        RevCommit revCommit = walk.parseCommit(objId);
+        RevTree tree = revCommit.getTree();
+        return  getFileContent(javaPath,tree,walk);
+    }
     
     /**
      * 获取指定分支指定的指定文件内容

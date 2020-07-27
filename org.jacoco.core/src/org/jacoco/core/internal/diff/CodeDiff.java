@@ -182,6 +182,61 @@ public class CodeDiff {
     }
 
     /**
+     * 多线程执行对比
+     */
+    private static List<ClassInfo> batchPrepareDiffMethodForLog(final GitAdapter gitAdapter, final String log1, final String log2, final DiffFormatter df, List<DiffEntry> diffs) {
+        int threadSize = 100;
+        int dataSize = diffs.size();
+        int threadNum = dataSize / threadSize + 1;
+        boolean special = dataSize % threadSize == 0;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+
+        List<Callable<List<ClassInfo>>> tasks = new ArrayList<Callable<List<ClassInfo>>>();
+        Callable<List<ClassInfo>> task = null;
+        List<DiffEntry> cutList = null;
+        //  分解每条线程的数据
+        for (int i = 0; i < threadNum; i++) {
+            if (i == threadNum - 1) {
+                if (special) {
+                    break;
+                }
+                cutList = diffs.subList(threadSize * i, dataSize);
+            } else {
+                cutList = diffs.subList(threadSize * i, threadSize * (i + 1));
+            }
+            final List<DiffEntry> diffEntryList = cutList;
+            task = new Callable<List<ClassInfo>>() {
+                public List<ClassInfo> call() throws Exception {
+                    List<ClassInfo> allList = new ArrayList<ClassInfo>();
+                    for (DiffEntry diffEntry : diffEntryList) {
+                        ClassInfo classInfo = prepareDiffMethodForLog(gitAdapter, log1, log2, df, diffEntry);
+                        if (classInfo != null) {
+                            allList.add(classInfo);
+                        }
+                    }
+                    return allList;
+                }
+            };
+            // 这里提交的任务容器列表和返回的Future列表存在顺序对应的关系
+            tasks.add(task);
+        }
+        List<ClassInfo> allClassInfoList = new ArrayList<ClassInfo>();
+        try {
+            List<Future<List<ClassInfo>>> results = executorService.invokeAll(tasks);
+            //结果汇总
+            for (Future<List<ClassInfo>> future : results ) {
+                allClassInfoList.addAll(future.get());
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            // 关闭线程池
+            executorService.shutdown();
+        }
+        return allClassInfoList;
+    }
+
+    /**
      * 单个差异文件对比
      */
     private synchronized static ClassInfo prepareDiffMethodForTag(GitAdapter gitAdapter, String newTag, String oldTag, DiffFormatter df, DiffEntry diffEntry) {
@@ -218,6 +273,70 @@ public class CodeDiff {
             }
             String oldJavaPath = diffEntry.getOldPath();
             String oldClassContent = gitAdapter.getTagRevisionSpecificFileContent(oldTag,oldJavaPath);
+            ASTGenerator oldAstGenerator = new ASTGenerator(oldClassContent);
+            MethodDeclaration[] newMethods = newAstGenerator.getMethods();
+            MethodDeclaration[] oldMethods = oldAstGenerator.getMethods();
+            Map<String, MethodDeclaration> methodsMap = new HashMap<String, MethodDeclaration>();
+            for (int i = 0; i < oldMethods.length; i++) {
+                methodsMap.put(oldMethods[i].getName().toString()+ oldMethods[i].parameters().toString(), oldMethods[i]);
+            }
+            for (final MethodDeclaration method : newMethods) {
+                // 如果方法名是新增的,则直接将方法加入List
+                if (!ASTGenerator.isMethodExist(method, methodsMap)) {
+                    MethodInfo methodInfo = newAstGenerator.getMethodInfo(method);
+                    methodInfoList.add(methodInfo);
+                    continue;
+                }
+                // 如果两个版本都有这个方法,则根据MD5判断方法是否一致
+                if (!ASTGenerator.isMethodTheSame(method, methodsMap.get(method.getName().toString()+ method.parameters().toString()))) {
+                    MethodInfo methodInfo =  newAstGenerator.getMethodInfo(method);
+                    methodInfoList.add(methodInfo);
+                }
+            }
+            return newAstGenerator.getClassInfo(methodInfoList, addLines, delLines);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 单个差异文件对比
+     */
+    private synchronized static ClassInfo prepareDiffMethodForLog(GitAdapter gitAdapter, String log1, String log2, DiffFormatter df, DiffEntry diffEntry) {
+        List<MethodInfo> methodInfoList = new ArrayList<MethodInfo>();
+        try {
+            String newJavaPath = diffEntry.getNewPath();
+            //  排除测试类
+            if (newJavaPath.contains("/src/test/java/")) {
+                return null;
+            }
+            //  非java文件 和 删除类型不记录
+            if (!newJavaPath.endsWith(".java") || diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE){
+                return null;
+            }
+            String newClassContent = gitAdapter.getCommitLogSpecificFileContent(log1,newJavaPath);
+            ASTGenerator newAstGenerator = new ASTGenerator(newClassContent);
+            /*  新增类型   */
+            if (diffEntry.getChangeType() == DiffEntry.ChangeType.ADD) {
+                return newAstGenerator.getClassInfo();
+            }
+            /*  修改类型  */
+            //  获取文件差异位置，从而统计差异的行数，如增加行数，减少行数
+            FileHeader fileHeader = df.toFileHeader(diffEntry);
+            List<int[]> addLines = new ArrayList<int[]>();
+            List<int[]> delLines = new ArrayList<int[]>();
+            EditList editList = fileHeader.toEditList();
+            for(Edit edit : editList){
+                if (edit.getLengthA() > 0) {
+                    delLines.add(new int[]{edit.getBeginA(), edit.getEndA()});
+                }
+                if (edit.getLengthB() > 0 ) {
+                    addLines.add(new int[]{edit.getBeginB(), edit.getEndB()});
+                }
+            }
+            String oldJavaPath = diffEntry.getOldPath();
+            String oldClassContent = gitAdapter.getCommitLogSpecificFileContent(log2,oldJavaPath);
             ASTGenerator oldAstGenerator = new ASTGenerator(oldClassContent);
             MethodDeclaration[] newMethods = newAstGenerator.getMethods();
             MethodDeclaration[] oldMethods = oldAstGenerator.getMethods();
@@ -364,16 +483,16 @@ public class CodeDiff {
         return null;
     }
 
-    public static List<ClassInfo> diffLogToBranch(String gitPath, String branchName, String log1, String log2) {
+    public static List<ClassInfo> diffLogToLog(String gitPath, String branchName, String newCommitId, String oldCommitId) {
         try {
             Git git = Git.open(new File(gitPath));
-            List<DiffEntry> diffs = getBranchDiffLog(git, branchName, log1, log2);
+            List<DiffEntry> diffs = getBranchDiffLog(git, branchName, newCommitId, oldCommitId);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             DiffFormatter df = new DiffFormatter(out);
             //设置比较器为忽略空白字符对比（Ignores all whitespace）
             df.setDiffComparator(RawTextComparator.WS_IGNORE_ALL);
             df.setRepository(git.getRepository());
-            List<ClassInfo> allClassInfos = batchPrepareDiffMethodForTag(new GitAdapter(gitPath), log1, log1, df, diffs);
+            List<ClassInfo> allClassInfos = batchPrepareDiffMethodForLog(new GitAdapter(gitPath), newCommitId, oldCommitId, df, diffs);
             return allClassInfos;
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -381,23 +500,31 @@ public class CodeDiff {
         }
     }
 
-    public static List<DiffEntry> getBranchDiffLog(Git git, String branchName, String log1, String log2) {
+    public static List<DiffEntry> getBranchDiffLog(Git git, String branchName, String newCommitId, String oldCommitId) {
         try {
             ObjectId objId = git.getRepository().resolve(branchName);
             Iterable<RevCommit> allCommitsLater = git.log().add(objId).call();
             Iterator<RevCommit> iter = allCommitsLater.iterator();
             TreeWalk tw = new TreeWalk(git.getRepository());
 
+            RevCommit newCommit = null;
+            RevCommit oldCommit = null;
             while (iter.hasNext()){
                 RevCommit commit = iter.next();
-                if(tw.getTreeCount() == 0){
-                    if(org.jacoco.core.util.StringUtils.startsWith(commit.getName(), log1)){
-                        tw.addTree(commit.getTree());
+                if(newCommit == null){
+                    if(org.jacoco.core.util.StringUtils.startsWith(commit.getName(), newCommitId)){
+                        newCommit = commit;
                     }
-                } else if(org.jacoco.core.util.StringUtils.startsWith(commit.getName(), log2)){
-                    tw.addTree(commit.getTree());
+                } else if(org.jacoco.core.util.StringUtils.startsWith(commit.getName(), oldCommitId)){
+                    oldCommit = commit;
+                    break;
                 }
             }
+            if(newCommit == null || oldCommit == null){
+                return new ArrayList<DiffEntry>();
+            }
+            tw.addTree(oldCommit.getTree());
+            tw.addTree(newCommit.getTree());
             tw.setRecursive(true);
             RenameDetector rd = new RenameDetector(git.getRepository());
             rd.addAll(DiffEntry.scan(tw));

@@ -150,55 +150,23 @@ public class CoverageBuilder implements ICoverageVisitor {
 	 * @param newBranchName newBranchName
 	 * @param oldBranchName oldBranchName
 	 */
-	public CoverageBuilder(String gitPath, String newBranchName, String oldBranchName) {
-		this.classes = new HashMap<String, IClassCoverage>();
-		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
-		classInfos = CodeDiff.diffBranchToBranch(gitPath, newBranchName, oldBranchName);
+	public static CoverageBuilder buildDiffBranchToBranch(String gitPath, String newBranchName, String oldBranchName) {
+		CoverageBuilder coverageBuilder = new CoverageBuilder();
+		coverageBuilder.classInfos = CodeDiff.diffBranchToBranch(gitPath, newBranchName, oldBranchName);
+		return coverageBuilder;
 	}
 
-	public CoverageBuilder(String gitPath, String newBranchName, String oldBranchName, List<String> packageExclusionList, List<String> nameExclusionList) {
-		this.classes = new HashMap<String, IClassCoverage>();
-		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
-		List<ClassInfo> classInfoList = CodeDiff.diffBranchToBranch(gitPath, newBranchName, oldBranchName);
-		this.classInfos = excludeClass(classInfoList, packageExclusionList, nameExclusionList);
-	}
-
-	private List<ClassInfo> excludeClass(List<ClassInfo> classInfoList, List<String> packageExclusionList, List<String> nameExclusionList) {
-		List<Pattern> packageList = new ArrayList<Pattern>();
-		List<Pattern> nameList = new ArrayList<Pattern>();
-		for (String item : packageExclusionList) {
-			packageList.add(Pattern.compile(item));
-		}
-		for (String item : nameExclusionList) {
-			nameList.add(Pattern.compile(item));
-		}
-		for (int i = classInfoList.size() - 1; i >= 0; i--) {
-			if (isInExclusionList(classInfoList.get(i), packageList, nameList)) {
-				classInfoList.remove(i);
-			}
-		}
-		return classInfoList;
-	}
-
-	public CoverageBuilder(String gitPath, String branchName, String log1, String log2, List<String> packageExclusionList, List<String> nameExclusionList) {
-		this.classes = new HashMap<String, IClassCoverage>();
-		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
-		List<ClassInfo> classInfoList = CodeDiff.diffLogToBranch(gitPath, branchName, log1, log2);
-		this.classInfos = excludeClass(classInfoList, packageExclusionList, nameExclusionList);
-	}
-
-	private boolean isInExclusionList(ClassInfo classInfo, List<Pattern> packageList, List<Pattern> nameList) {
-		for (Pattern p : packageList){
-			if(p.matcher(classInfo.getPackages()).matches()){
-				return true;
-			}
-		}
-		for (Pattern p : nameList){
-			if(p.matcher(classInfo.getClassName()).matches()){
-				return true;
-			}
-		}
-		return false;
+	/**
+	 * commitId与commitId之间对比
+	 * @param gitPath
+	 * @param branchName
+	 * @param log1
+	 * @param log2
+	 */
+	public static CoverageBuilder buildDiffLogToLog(String gitPath, String branchName, String log1, String log2) {
+		CoverageBuilder coverageBuilder = new CoverageBuilder();
+		coverageBuilder.classInfos = CodeDiff.diffLogToLog(gitPath, branchName, log1, log2);
+		return coverageBuilder;
 	}
 
 	/**
@@ -208,10 +176,9 @@ public class CoverageBuilder implements ICoverageVisitor {
 	 * @param newTag new Tag
 	 * @param oldTag old Tag
 	 */
-	public CoverageBuilder(String gitPath, String branchName, String newTag, String oldTag) {
-		this.classes = new HashMap<String, IClassCoverage>();
-		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
-		classInfos = CodeDiff.diffTagToTag(gitPath,branchName, newTag, oldTag);
+	public static CoverageBuilder buildDiffTagToTag(String gitPath, String branchName, String newTag, String oldTag) {
+		CoverageBuilder coverageBuilder = new CoverageBuilder();
+		coverageBuilder.classInfos = CodeDiff.diffTagToTag(gitPath,branchName, newTag, oldTag);
+		return coverageBuilder;
 	}
-
 }
