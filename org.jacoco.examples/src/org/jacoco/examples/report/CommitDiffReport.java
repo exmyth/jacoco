@@ -4,7 +4,6 @@ import org.jacoco.core.analysis.CoverageBuilder;
 
 import java.io.File;
 
-/** * 用于根据exec文件生成增量覆盖率报告 */
 public class CommitDiffReport extends DiffReport{
 
     private final String gitPath;

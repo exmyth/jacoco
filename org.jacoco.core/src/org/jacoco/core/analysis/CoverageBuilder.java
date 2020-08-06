@@ -44,7 +44,7 @@ public class CoverageBuilder implements ICoverageVisitor {
 
 	private final Map<String, ISourceFileCoverage> sourcefiles;
 
-	public static List<ClassInfo> classInfos;    // 新增的成员变量
+	public static List<ClassInfo> classInfos;
 
 	/**
 	 * Create a new builder.

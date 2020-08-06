@@ -15,15 +15,12 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import java.io.*;
 import java.util.*;
 
-/**
- * Git操作类
- */
 public class GitAdapter {
     private Git git;
     private Repository repository;
     private String gitFilePath;
 
-    //  Git授权
+    //  Git authorization
     private static UsernamePasswordCredentialsProvider usernamePasswordCredentialsProvider;
 
     public GitAdapter(String gitFilePath) {
@@ -52,9 +49,9 @@ public class GitAdapter {
     }
 
     /**
-     * git授权。需要设置拥有所有权限的用户
-     * @param username  git用户名
-     * @param password  git用户密码
+     * git authorization. Need to set up users with all permissions
+     * @param username
+     * @param password
      */
     public static void setCredentialsProvider(String username, String password) {
         if(usernamePasswordCredentialsProvider == null || !usernamePasswordCredentialsProvider.isInteractive()){
@@ -63,10 +60,10 @@ public class GitAdapter {
     }
 
     /**
-     * 获取指定分支的指定文件内容
-     * @param branchName        分支名称
-     * @param javaPath          文件路径
-     * @return  java类
+     * Get the specified file content of the specified branch
+     * @param branchName
+     * @param javaPath
+     * @return
      * @throws IOException
      */
     public String getBranchSpecificFileContent(String branchName, String javaPath) throws IOException {
@@ -78,9 +75,9 @@ public class GitAdapter {
     }
 
     /**
-     * 获取指定分支指定Tag版本的指定文件内容
-     * @param tagRevision       Tag版本
-     * @param javaPath          件路径
+     * Get the specified file content of the specified tag version of the specified branch
+     * @param tagRevision
+     * @param javaPath
      * @return  java类
      * @throws IOException
      */
@@ -101,8 +98,8 @@ public class GitAdapter {
     }
     
     /**
-     * 获取指定分支指定的指定文件内容
-     * @param javaPath      件路径
+     * Get the contents of the specified file specified by the specified branch
+     * @param javaPath
      * @param tree          git RevTree
      * @param walk          git RevWalk
      * @return  java类
@@ -118,8 +115,8 @@ public class GitAdapter {
     }
 
     /**
-     * 分析分支树结构信息
-     * @param localRef      本地分支
+     * Analyze branch tree structure information
+     * @param localRef
      * @return
      * @throws IOException
      */
@@ -134,8 +131,8 @@ public class GitAdapter {
         return treeParser;
     }
     /**
-     * 切换分支
-     * @param branchName    分支名称
+     *
+     * @param branchName
      * @throws GitAPIException GitAPIException
      */
     public void checkOut(String branchName) throws GitAPIException {
@@ -144,9 +141,9 @@ public class GitAdapter {
     }
 
     /**
-     * 更新分支代码
-     * @param localRef      本地分支
-     * @param branchName    分支名称
+     * check out branch code
+     * @param localRef
+     * @param branchName
      * @throws GitAPIException GitAPIException
      */
     public void checkOutAndPull(Ref localRef, String branchName) throws GitAPIException {
@@ -154,22 +151,22 @@ public class GitAdapter {
         if (!isCreateBranch && checkBranchNewVersion(localRef)) {
             return;
         }
-        //  切换分支
+        //  check out
         git.checkout().setCreateBranch(isCreateBranch).setName(branchName).setStartPoint("origin/" + branchName).setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.SET_UPSTREAM).call();
-        //  拉取最新代码
+        //  pull last code
         git.pull().setCredentialsProvider(usernamePasswordCredentialsProvider).call();
     }
 
     /**
-     * 判断本地分支是否是最新版本。目前不考虑分支在远程仓库不存在，本地存在
-     * @param localRef  本地分支
+     * Determine whether the local branch is the latest version. Currently, it is not considered that the branch does not exist in the remote warehouse but exists locally
+     * @param localRef
      * @return  boolean
      * @throws GitAPIException GitAPIException
      */
     private boolean checkBranchNewVersion(Ref localRef) throws GitAPIException {
         String localRefName = localRef.getName();
         String localRefObjectId = localRef.getObjectId().getName();
-        //  获取远程所有分支
+        //  Get all remote branches
         Collection<Ref> remoteRefs = git.lsRemote().setCredentialsProvider(usernamePasswordCredentialsProvider).setHeads(true).call();
         for (Ref remoteRef : remoteRefs) {
             String remoteRefName = remoteRef.getName();

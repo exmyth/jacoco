@@ -1,13 +1,9 @@
 package org.jacoco.examples.report;
 
-import org.jacoco.core.analysis.Analyzer;
 import org.jacoco.core.analysis.CoverageBuilder;
-import org.jacoco.core.analysis.IBundleCoverage;
 
 import java.io.File;
-import java.io.IOException;
 
-/** * 用于根据exec文件生成增量覆盖率报告 */
 public class BranchDiffReport extends DiffReport{
 
     private final String gitPath;

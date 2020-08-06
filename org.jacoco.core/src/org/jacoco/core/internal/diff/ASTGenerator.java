@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * AST编译java源文件
+ * AST compiles java source files
  */
 public class ASTGenerator {
     private String javaText;
@@ -23,7 +23,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 获取AST编译单元,首次加载很慢
+     * Get the AST compilation unit, it load slowly first time
      */
     private void initCompilationUnit() {
         //  AST编译
@@ -40,7 +40,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 获取java类包名
+     * Get java class package name
      */
     public String getPackageName() {
         if (compilationUnit == null) {
@@ -55,7 +55,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 获取普通类单元
+     * Get class unit
      */
     public TypeDeclaration getJavaClass() {
         if (compilationUnit == null) {
@@ -73,8 +73,8 @@ public class ASTGenerator {
     }
 
     /**
-     * 获取java类中所有方法
-     * @return 类中所有方法
+     * Get all methods in java class
+     * @return
      */
     public MethodDeclaration[] getMethods() {
         TypeDeclaration typeDec = getJavaClass();
@@ -86,7 +86,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 获取新增类中的所有方法信息
+     * Get all method information in the new class
      */
     public List<MethodInfo> getMethodInfoList() {
         MethodDeclaration[] methodDeclarations = getMethods();
@@ -100,7 +100,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 获取修改类型的类的信息以及其中的所有方法，排除接口类
+     * Get the information of the modified type class and all methods in it, excluding the interface class
      */
     public ClassInfo getClassInfo(List<MethodInfo> methodInfos, List<int[]> addLines, List<int[]> delLines) {
         TypeDeclaration typeDec = getJavaClass();
@@ -118,7 +118,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 获取新增类型的类的信息以及其中的所有方法，排除接口类
+     * Get the information of the new type of class and all the methods in it, excluding the interface class
      */
     public ClassInfo getClassInfo() {
         TypeDeclaration typeDec = getJavaClass();
@@ -141,7 +141,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 获取修改中的方法
+     * Get the modified method
      */
     public MethodInfo getMethodInfo(MethodDeclaration methodDeclaration) {
         MethodInfo methodInfo = new MethodInfo();
@@ -156,7 +156,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 计算方法的MD5的值
+     * MD5 value of calculation method
      */
     public static String MD5Encode(String s) {
         String MD5String = "";
@@ -173,9 +173,9 @@ public class ASTGenerator {
     }
 
     /**
-     * 判断方法是否存在
-     * @param method        新分支的方法
-     * @param methodsMap    master分支的方法
+     * Determine whether the method exists
+     * @param method        the method in new branch
+     * @param methodsMap    the method in master branch
      * @return
      */
     public static boolean isMethodExist(final MethodDeclaration method, final Map<String, MethodDeclaration> methodsMap) {
@@ -187,7 +187,7 @@ public class ASTGenerator {
     }
 
     /**
-     * 判断方法是否一致
+     * Determine whether the method is consistent
      */
     public static boolean isMethodTheSame(final MethodDeclaration method1,final MethodDeclaration method2) {
         if (MD5Encode(method1.toString()).equals(MD5Encode(method2.toString()))) {

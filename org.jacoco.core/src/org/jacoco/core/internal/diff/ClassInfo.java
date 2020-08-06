@@ -4,35 +4,35 @@ import java.util.List;
 
 public class ClassInfo {
     /**
-     * java文件
+     * java file
      */
     private String classFile;
     /**
-     * 类名
+     * class name
      */
     private String className;
     /**
-     * 包名
+     * package name
      */
     private String packages;
 
     /**
-     * 类中的方法
+     * the method in class
      */
     private List<MethodInfo> methodInfos;
 
     /**
-     * 新增的行数
+     * Number of rows added
      */
     private List<int[]> addLines;
 
     /**
-     * 删除的行数
+     * Number of rows deleted
      */
     private List<int[]> delLines;
 
     /**
-     * 修改类型
+     * Modify type
      */
     private String type;
 

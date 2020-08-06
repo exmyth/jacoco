@@ -70,7 +70,7 @@ public class ClassProbesAdapter extends ClassVisitor
 		final MethodProbesVisitor methodProbes;
 		final MethodProbesVisitor mv = cv.visitMethod(access, name, desc,
 				signature, exceptions);
-		//    增量计算覆盖率
+		//    calculate diff coverage rate
 		if (mv !=null && isContainsMethod(name, CoverageBuilder.classInfos)) {
 			methodProbes = mv;
 		} else {
@@ -105,8 +105,6 @@ public class ClassProbesAdapter extends ClassVisitor
 		cv.visitTotalProbeCount(counter);
 		super.visitEnd();
 	}
-
-	// === IProbeIdGenerator ===
 
 	public int nextId() {
 		return counter++;

@@ -88,21 +88,21 @@ final class SourceHighlighter {
 	private void renderCodeLine(final HTMLElement pre, final String linesrc,
 								final ILine line, final int lineNr, final String classPath) throws IOException {
 		if (CoverageBuilder.classInfos == null || CoverageBuilder.classInfos.isEmpty()) {
-			//    全量覆盖
+			//    Full coverage
 			highlight(pre, line, lineNr).text(linesrc);
 			pre.text("\n");
 		} else {
-			//    增量覆盖
+			//    Diff coverage
 			boolean existFlag = true;
 			for (ClassInfo classInfo : CoverageBuilder.classInfos) {
 				String tClassPath = classInfo.getPackages() + "." + classInfo.getClassName();
 				if (classPath.equals(tClassPath)) {
-					//    新增的类
+					//    add class
 					if ("ADD".equalsIgnoreCase(classInfo.getType())) {
 						highlight(pre, line, lineNr).text("+ " + linesrc);
 						pre.text("\n");
 					} else {
-						//    修改的类
+						//    modify class
 						boolean flag = false;
 						List<int[]> addLines = classInfo.getAddLines();
 						for (int[] ints: addLines) {

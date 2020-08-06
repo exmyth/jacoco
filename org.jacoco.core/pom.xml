@@ -38,14 +38,14 @@
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-tree</artifactId>
     </dependency>
-	<!--java文件编译class-->
+	<!--java file compile class-->
     <dependency>
       <groupId>org.eclipse.jdt</groupId>
       <artifactId>org.eclipse.jdt.core</artifactId>
       <version>3.19.0</version>
     </dependency>
 
-    <!--git操作-->
+    <!--git operation-->
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>

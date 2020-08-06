@@ -79,7 +79,7 @@ public abstract class DiffReport {
 
         visitor.visitBundle(bundleCoverage, new DirectorySourceFileLocator(sourceDirectory, "utf-8", 4));
 
-//        //多源码路径
+//        //Multiple source path
 //        MultiSourceFileLocator sourceLocator = new MultiSourceFileLocator(4);
 //        sourceLocator.add( new DirectorySourceFileLocator(sourceDir1, "utf-8", 4));
 //        sourceLocator.add( new DirectorySourceFileLocator(sourceDir2, "utf-8", 4));
