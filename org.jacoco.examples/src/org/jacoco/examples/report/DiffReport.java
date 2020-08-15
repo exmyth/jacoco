@@ -51,7 +51,7 @@ public abstract class DiffReport {
     public void create() throws IOException {
         loadExecutionData();
         // git登录授权
-        GitAdapter.setCredentialsProvider("zhongmaming", "qPmz12480.");
+        GitAdapter.setCredentialsProvider("<<Account>>", "<<Password>>");
         CoverageBuilder coverageBuilder = buildCoverageBuilder();
         excludeClass(CoverageBuilder.classInfos, packageExclusionList, nameExclusionList);
         if(CoverageBuilder.classInfos != null && !CoverageBuilder.classInfos.isEmpty()){
